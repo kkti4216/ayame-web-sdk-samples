@@ -23,6 +23,9 @@ function parseQueryString() {
     if (params.clientId) {
       clientId = params.clientId;
     }
+    if (params.signalingUrl) {
+      signalingUrl = params.signalingUrl;
+    }
     if (params.signalingKey) {
       signalingKey = params.signalingKey;
     }
@@ -38,3 +41,8 @@ roomIdInput.addEventListener('change', (event) => {
   roomId = event.target.value;
 });
 
+const signalingURLnput = document.getElementById("signalingURLnput");
+signalingURLnput.addEventListener('change', (event) => {
+  console.log(event);
+  signalingUrl = event.target.value;
+});
