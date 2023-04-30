@@ -50,15 +50,21 @@
         const localVideo = document.querySelector('#local-video');
         const remoteVideo = document.querySelector('#remote-video');
         let conn;
+        let mediaStream;
         const disconnect = () => {
           if (conn) {
             conn.disconnect();
+          }
+          localVideo.srcObject = null;
+          remoteVideo.srcObject = null;
+          if (mediaStream) {
+            mediaStream.getTracks().forEach((track) => track.stop());
           }
         }
         const startConn = async () => {
           options.video.codec = videoCodec;
           conn = Ayame.connection(signalingUrl, roomId, options, true);
-          const mediaStream = await navigator.mediaDevices.getUserMedia({audio: true, video: true})
+          mediaStream = await navigator.mediaDevices.getUserMedia({audio: true, video: true})
           const authnMetadata = {hoge: "fuga"};
           conn.on('open', ({authzMetadata}) => console.log(authzMetadata));
           conn.on('disconnect', (e) => {
