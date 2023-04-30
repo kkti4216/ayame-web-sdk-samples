@@ -1,5 +1,4 @@
-let signalingUrl = 'wss://signaling.itokoki.hongo.wide.ad.jp/signaling';
-// const signalingUrl = 'ws://signaling.itokoki.hongo.wide.ad.jp:3333/signaling';
+let signalingUrl = 'wss://signaling.itokoki.hongo.wide.ad.jp';
 let roomId = 'ayame-web-sdk-sample';
 let clientId = null;
 let videoCodec = null;
