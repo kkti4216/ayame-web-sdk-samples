@@ -12,34 +12,33 @@
         <p>Signaling Server
           <input id="signalingURLnput" type="text" value=""></input>
         </p>
-        <p>ルームID
+        <p>Room ID
         <input id="roomIdInput" type="text"></input>
         </p>
-        <p>クライアントID
+        <p>Client ID
         <input id="clientIdInput" disabled type="text" value=""></input>
         </p>
-        <p> 映像コーデック
+        <p> Codec
         <select id="video-codec" onChange="onChangeVideoCodec();">
+          <option value="H264">H264</option>
           <option value="none">none</option>
           <option value="VP8">VP8</option>
           <option value="VP9">VP9</option>
           <option value="AV1">AV1</option>
-          <option value="H264">H264</option>
           <option value="H265">H265</option>
         </select>
-        （Google Chrome、Microsoft Edge でのみで動作します）
         </p>
-        <button onclick="startConn();">接続</button>
-        <button onclick="disconnect();">切断</button>
+        <button onclick="startConn();">Connect</button>
+        <button onclick="disconnect();">Disconnect</button>
         <button id="start-recording">Start Recording</button>
         <button id="stop-recording" disabled>Stop Recording</button>
          <a id="download-link" href="#" download="remote-video.webm" style="display:none">Download Recorded Video</a>
       </div>
       <div style="float:left;">
-        <video id="local-video" muted autoplay playsinline style="width: 400px; height: 300px; border: 1px solid black;"></video>
+        <video id="local-video" muted autoplay playsinline style="width: ${localVideoWidth}px; height: ${localVideoHeight}px; border: 1px solid black;"></video>
       </div>
       <div style="float:left; margin-left: 20px;">
-        <video id="remote-video" autoplay playsinline style="width: 400px; height: 300px; border: 1px solid black;"></video>
+        <video id="remote-video" autoplay playsinline style="width: ${remoteVideoWidth}px; height: ${remoteVideoHeight}px; border: 1px solid black;"></video>
       </div>
       <script src="https://cdn.jsdelivr.net/npm/@open-ayame/ayame-web-sdk@2022.1.0/dist/ayame.js"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.7.0/qs.min.js"></script>
@@ -54,6 +53,13 @@
         const remoteVideo = document.querySelector('#remote-video');
         let conn;
         let mediaStream;
+        let videoWidth = 1920;
+        let videoHeight = 1080;
+        const localVideoWidth = videoWidth;
+        const localVideoHeight = videoHeight ;
+        const remoteVideoWidth = videoWidth;
+        const remoteVideoHeight = videoHeight ;
+
         const disconnect = () => {
           if (conn) {
             conn.disconnect();
@@ -67,7 +73,13 @@
         const startConn = async () => {
           options.video.codec = videoCodec;
           conn = Ayame.connection(signalingUrl, roomId, options, true);
-          mediaStream = await navigator.mediaDevices.getUserMedia({audio: true, video: true})
+          const mediaStream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+            video: {
+              width: videoWidth,
+              height: videoHeight,
+            },
+          });
           const authnMetadata = {hoge: "fuga"};
           conn.on('open', ({authzMetadata}) => console.log(authzMetadata));
           conn.on('disconnect', (e) => {
@@ -111,7 +123,7 @@
 
         function startRecording() {
           recordedBlobs = [];
-          const mimeType = "video/webm;codecs=vp8,opus";
+          const mimeType = "video/webm;codecs=h264,opus";
           const options = { mimeType };
 
           try {
@@ -140,6 +152,8 @@
         function handleStop() {
           const blob = new Blob(recordedBlobs, { type: "video/webm" });
           const url = window.URL.createObjectURL(blob);
+          const dateTime = new Date().toISOString().replace(/[:.]/g, "-");
+          downloadLink.download = `remote-video-${dateTime}.webm`;
           downloadLink.href = url;
           downloadLink.style.display = "block";
         }
