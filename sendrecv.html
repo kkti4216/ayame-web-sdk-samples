@@ -31,6 +31,9 @@
         </p>
         <button onclick="startConn();">接続</button>
         <button onclick="disconnect();">切断</button>
+        <button id="start-recording">Start Recording</button>
+        <button id="stop-recording" disabled>Stop Recording</button>
+         <a id="download-link" href="#" download="remote-video.webm" style="display:none">Download Recorded Video</a>
       </div>
       <div style="float:left;">
         <video id="local-video" muted autoplay playsinline style="width: 400px; height: 300px; border: 1px solid black;"></video>
@@ -82,6 +85,64 @@
         document.querySelector("#signalingURLnput").value = signalingUrl;
         document.querySelector("#roomIdInput").value = roomId;
         document.querySelector("#clientIdInput").value = options.clientId;
+
+        // for recoding
+        let mediaRecorder;
+        let recordedBlobs;
+        const startRecordingButton = document.querySelector("#start-recording");
+        const stopRecordingButton = document.querySelector("#stop-recording");
+        const downloadLink = document.querySelector("#download-link");
+
+        startRecordingButton.addEventListener("click", () => {
+          if (remoteVideo.srcObject) {
+            startRecording();
+            startRecordingButton.disabled = true;
+            stopRecordingButton.disabled = false;
+          } else {
+            alert("fail to start recoding");
+          }
+        });
+
+        stopRecordingButton.addEventListener("click", () => {
+          stopRecording();
+          startRecordingButton.disabled = false;
+          stopRecordingButton.disabled = true;
+        });
+
+        function startRecording() {
+          recordedBlobs = [];
+          const mimeType = "video/webm;codecs=vp8,opus";
+          const options = { mimeType };
+
+          try {
+            mediaRecorder = new MediaRecorder(remoteVideo.srcObject, options);
+          } catch (e) {
+            console.error("Error creating MediaRecorder:", e);
+            return;
+          }
+
+          mediaRecorder.ondataavailable = handleDataAvailable;
+          mediaRecorder.onstop = handleStop;
+          mediaRecorder.start();
+          console.log("MediaRecorder started:", mediaRecorder);
+        }
+
+        function handleDataAvailable(event) {
+          if (event.data && event.data.size > 0) {
+            recordedBlobs.push(event.data);
+          }
+        }
+
+        function stopRecording() {
+          mediaRecorder.stop();
+        }
+
+        function handleStop() {
+          const blob = new Blob(recordedBlobs, { type: "video/webm" });
+          const url = window.URL.createObjectURL(blob);
+          downloadLink.href = url;
+          downloadLink.style.display = "block";
+        }
       </script>
   </body>
 </html>
