@@ -40,12 +40,12 @@
       <div style="float:left; margin-left: 20px;">
         <video id="remote-video" autoplay playsinline style="width: ${remoteVideoWidth}px; height: ${remoteVideoHeight}px; border: 1px solid black;"></video>
       </div>
-      <script src="https://cdn.jsdelivr.net/npm/@open-ayame/ayame-web-sdk@2022.1.0/dist/ayame.js"></script>
+      <!-- <script src="https://cdn.jsdelivr.net/npm/@open-ayame/ayame-web-sdk@2022.1.0/dist/ayame.js"></script> -->
       <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.7.0/qs.min.js"></script>
       <script src="./main.js"></script>
-      <script type="text/javascript">
-        // import { MediaControll } from './src/mediaControll.js';
-        // import * as Ayame from '@open-ayame/ayame-web-sdk';
+      <script type="module">
+        import * as Ayame from '@open-ayame/ayame-web-sdk';
+        import * as RtcStats from 'rtcstats-wrapper';
 
         const options = Ayame.defaultOptions;
         options.clientId = clientId ? clientId : options.clientId;
@@ -184,6 +184,23 @@
           downloadLink.href = url;
           downloadLink.style.display = "block";
         }
+
+        // metrics
+        async function getRtt() {
+          console.log(conn)
+          if (!conn || !conn.connectionState == "connected") {
+            console.error('Connection is not established.');
+            return;
+          }
+          const report = await conn._pc.getStats();
+          console.log(report)
+          const rtcStatsMoment = new RtcStats.RTCStatsMoment(conn.connection);
+
+          rtcStatsMoment.update(report)
+          console.log(rtcStatsMoment.report())
+        }
+
+        setInterval(getRtt, 1000);
       </script>
   </body>
 </html>
