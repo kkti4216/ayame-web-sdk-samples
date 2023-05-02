@@ -28,8 +28,8 @@
           <option value="H265">H265</option>
         </select>
         </p>
-        <button onclick="startConn();">Connect</button>
-        <button onclick="disconnect();">Disconnect</button>
+        <button id="connect">Connect</button>
+        <button id="disconnect" disabled>Disconnect</button>
         <button id="start-recording">Start Recording</button>
         <button id="stop-recording" disabled>Stop Recording</button>
          <a id="download-link" href="#" download="remote-video.webm" style="display:none">Download Recorded Video</a>
@@ -44,6 +44,9 @@
       <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.7.0/qs.min.js"></script>
       <script src="./main.js"></script>
       <script type="text/javascript">
+        // import { MediaControll } from './src/mediaControll.js';
+        // import * as Ayame from '@open-ayame/ayame-web-sdk';
+
         const options = Ayame.defaultOptions;
         options.clientId = clientId ? clientId : options.clientId;
         if (signalingKey) {
@@ -60,7 +63,20 @@
         const remoteVideoWidth = videoWidth;
         const remoteVideoHeight = videoHeight ;
 
-        const disconnect = () => {
+        document.querySelector("#signalingURLnput").value = signalingUrl;
+        document.querySelector("#roomIdInput").value = roomId;
+        document.querySelector("#clientIdInput").value = options.clientId;
+
+        // connection
+        const connectButton = document.querySelector("#connect");
+        const disconnectButton = document.querySelector("#disconnect");
+
+        disconnectButton.addEventListener("click", () => {
+          handleDisconnect();
+          handleRecordingOnDisconnect();
+        });
+
+        function handleDisconnect() {
           if (conn) {
             conn.disconnect();
           }
@@ -69,11 +85,25 @@
           if (mediaStream) {
             mediaStream.getTracks().forEach((track) => track.stop());
           }
+          connectButton.disabled = false
+          disconnectButton.disabled = true
         }
-        const startConn = async () => {
+
+        function handleRecordingOnDisconnect() {
+          if (mediaRecorder && mediaRecorder.state === 'recording') {
+            stopRecording();
+            startRecordingButton.disabled = false;
+            stopRecordingButton.disabled = true;
+          }
+        }
+
+        connectButton.addEventListener("click", async () => {
+          connectButton.disabled = true
+          disconnectButton.disabled = false
+
           options.video.codec = videoCodec;
           conn = Ayame.connection(signalingUrl, roomId, options, true);
-          const mediaStream = await navigator.mediaDevices.getUserMedia({
+          mediaStream = await navigator.mediaDevices.getUserMedia({
             audio: true,
             video: {
               width: videoWidth,
@@ -84,8 +114,8 @@
           conn.on('open', ({authzMetadata}) => console.log(authzMetadata));
           conn.on('disconnect', (e) => {
             console.log(e);
-            localVideo.srcObject = null;
-            remoteVideo.srcObject = null;
+            handleDisconnect();
+            handleRecordingOnDisconnect();
           });
           conn.on('addstream', async (e) => {
             console.log(e.stream);
@@ -93,12 +123,9 @@
           });
           await conn.connect(mediaStream, { authnMetadata });
           localVideo.srcObject = mediaStream;
-        };
-        document.querySelector("#signalingURLnput").value = signalingUrl;
-        document.querySelector("#roomIdInput").value = roomId;
-        document.querySelector("#clientIdInput").value = options.clientId;
+        });
 
-        // for recoding
+        // recoding
         let mediaRecorder;
         let recordedBlobs;
         const startRecordingButton = document.querySelector("#start-recording");
@@ -107,7 +134,7 @@
 
         startRecordingButton.addEventListener("click", () => {
           if (remoteVideo.srcObject) {
-            startRecording();
+            startRecording(remoteVideo.srcObject);
             startRecordingButton.disabled = true;
             stopRecordingButton.disabled = false;
           } else {
