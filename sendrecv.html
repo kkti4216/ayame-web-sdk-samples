@@ -191,21 +191,58 @@
         }
 
         // metrics
-        async function getRtt() {
-          console.log(conn)
+        // async function getRtt() {
+        //   console.log(conn)
+        //   if (!conn || !conn.connectionState == "connected") {
+        //     console.error('Connection is not established.');
+        //     return;
+        //   }
+        //   const report = await conn._pc.getStats();
+        //   console.log(report)
+        //   const rtcStatsMoment = new RtcStats.RTCStatsMoment(conn.connection);
+
+        //   rtcStatsMoment.update(report)
+        //   console.log(rtcStatsMoment.report())
+        // }
+
+        // setInterval(getRtt, 1000);
+
+        async function getInstantaneousLatency() {
           if (!conn || !conn.connectionState == "connected") {
             console.error('Connection is not established.');
             return;
           }
-          const report = await conn._pc.getStats();
-          console.log(report)
-          const rtcStatsMoment = new RtcStats.RTCStatsMoment(conn.connection);
 
-          rtcStatsMoment.update(report)
-          console.log(rtcStatsMoment.report())
+          const report = await conn._pc.getStats();
+
+          // ビデオとオーディオの瞬時遅延を取得
+          const videoInstantaneousLatency = calculateInstantaneousLatency('video', report);
+          const audioInstantaneousLatency = calculateInstantaneousLatency('audio', report);
+
+          // コンソールに出力
+          console.log(`ビデオの瞬時遅延: ${videoInstantaneousLatency.toFixed(5)} ms`);
+          console.log(`オーディオの瞬時遅延: ${audioInstantaneousLatency.toFixed(5)} ms`);
         }
 
-        setInterval(getRtt, 1000);
+        function calculateInstantaneousLatency(type, report) {
+          let latestTimestamp = 0;
+          let instantaneousLatency = 0;
+
+          for (const stat of report.values()) {
+            if (stat.type === 'remote-inbound-rtp' && stat.kind === type) {
+              if (stat.timestamp > latestTimestamp) {
+                latestTimestamp = stat.timestamp;
+                instantaneousLatency = stat.roundTripTime;
+              }
+            }
+          }
+
+          return instantaneousLatency;
+        }
+
+        // 1秒ごとに瞬時遅延を出力
+        setInterval(getInstantaneousLatency, 1000);
+
       </script>
   </body>
 </html>
