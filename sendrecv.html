@@ -74,7 +74,7 @@
         const videoSizeSelect = document.getElementById('video-size');
         videoSizeSelect.addEventListener("change", () => {
           if (videoSizeSelect.value == "1080p-h") {
-            videoWidth = 1980;
+            videoWidth = 1920;
             videoHeight = 1080;
           } else if (videoSizeSelect.value == "1080p-v") {
             videoWidth = 1080;
@@ -128,7 +128,7 @@
           connectButton.disabled = true
           disconnectButton.disabled = false
 
-          options.video.codec = "H264";
+          options.video.codec = "VP9";
           conn = Ayame.connection(signalingUrl, roomId, options, true);
           mediaStream = await navigator.mediaDevices.getUserMedia({
             audio: true,
@@ -177,7 +177,7 @@
 
         function startRecording() {
           recordedBlobs = [];
-          const mimeType = "video/webm;codecs=h264,opus";
+          const mimeType = "video/webm;codecs=VP9,opus";
           const options = { mimeType };
 
           try {
