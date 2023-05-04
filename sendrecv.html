@@ -220,8 +220,8 @@
           const audioInstantaneousLatency = calculateInstantaneousLatency('audio', report);
 
           // コンソールに出力
-          console.log(`ビデオの瞬時遅延: ${videoInstantaneousLatency.toFixed(5)} ms`);
-          console.log(`オーディオの瞬時遅延: ${audioInstantaneousLatency.toFixed(5)} ms`);
+          console.log(`ビデオの瞬時遅延: ${videoInstantaneousLatency.toFixed(4)} s`);
+          console.log(`オーディオの瞬時遅延: ${audioInstantaneousLatency.toFixed(4)} s`);
         }
 
         function calculateInstantaneousLatency(type, report) {
