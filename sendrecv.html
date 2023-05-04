@@ -28,6 +28,13 @@
           <option value="H265">H265</option>
         </select>
         </p> -->
+        <p> Size
+        <select id="video-size">
+          <option value="1080p-v">1080p-v</option>
+          <option value="1080p-h">1080p-h</option>
+          <option value="480p">480p</option>
+        </select>
+        </p>
         <button id="connect">Connect</button>
         <button id="disconnect" disabled>Disconnect</button>
         <button id="start-recording">Start Recording</button>
@@ -61,8 +68,20 @@
         const remoteVideo = document.querySelector('#remote-video');
         let conn;
         let mediaStream;
-        let videoWidth = 1920;
-        let videoHeight = 1080;
+
+        let videoWidth;
+        let videoHeight;
+        const videoSizeSelect = document.getElementById('video-size');
+        if (videoSizeSelect.value == "1080p-h") {
+          videoWidth = 1920;
+          videoHeight = 1080;
+        } else if (videoSizeSelect.value == "1080p-v") {
+          videoWidth = 1080;
+          videoHeight = 1920;
+        } else {
+          videoWidth = 854;
+          videoHeight = 480;
+        }
         const localVideoWidth = videoWidth;
         const localVideoHeight = videoHeight ;
         const remoteVideoWidth = videoWidth;
