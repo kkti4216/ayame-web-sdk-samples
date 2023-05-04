@@ -69,19 +69,22 @@
         let conn;
         let mediaStream;
 
-        let videoWidth;
-        let videoHeight;
+        let videoWidth = 1080;
+        let videoHeight = 1920;
         const videoSizeSelect = document.getElementById('video-size');
-        if (videoSizeSelect.value == "1080p-h") {
-          videoWidth = 1980;
-          videoHeight = 1080;
-        } else if (videoSizeSelect.value == "1080p-v") {
-          videoWidth = 1080;
-          videoHeight = 1980;
-        } else {
-          videoWidth = 854;
-          videoHeight = 480;
+        videoSizeSelect.addEventListener("change", () => {
+          if (videoSizeSelect.value == "1080p-h") {
+            videoWidth = 1980;
+            videoHeight = 1080;
+          } else if (videoSizeSelect.value == "1080p-v") {
+            videoWidth = 1080;
+            videoHeight = 1980;
+          } else {
+            videoWidth = 854;
+            videoHeight = 480;
+          }
         }
+        )
         const localVideoWidth = videoWidth;
         const localVideoHeight = videoHeight ;
         const remoteVideoWidth = videoWidth;
