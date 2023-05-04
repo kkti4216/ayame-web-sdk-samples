@@ -48,6 +48,11 @@
         import * as RtcStats from 'rtcstats-wrapper';
 
         const options = Ayame.defaultOptions;
+
+        options.iceServers = [
+        { "urls": "stun:stun.l.google.com:19302" }
+        ]
+
         options.clientId = clientId ? clientId : options.clientId;
         if (signalingKey) {
           options.signalingKey = signalingKey;
