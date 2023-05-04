@@ -231,6 +231,8 @@
         // setInterval(getRtt, 1000);
 
         async function getInstantaneousLatency() {
+          const currentTime = new Date().toISOString();
+          console.log(currentTime);
           if (!conn || !conn.connectionState == "connected") {
             console.error('Connection is not established.');
             return;
@@ -238,29 +240,18 @@
 
           const report = await conn._pc.getStats();
 
-          // ビデオとオーディオの瞬時遅延を取得
-          const videoInstantaneousLatency = calculateInstantaneousLatency('video', report);
-          const audioInstantaneousLatency = calculateInstantaneousLatency('audio', report);
-
-          // コンソールに出力
-          console.log(`ビデオの瞬時遅延: ${videoInstantaneousLatency.toFixed(4)} s`);
-          console.log(`オーディオの瞬時遅延: ${audioInstantaneousLatency.toFixed(4)} s`);
-        }
-
-        function calculateInstantaneousLatency(type, report) {
-          let latestTimestamp = 0;
-          let instantaneousLatency = 0;
+          const types = [
+            'remote-inbound-rtp',
+            'remote-outbound-rtp',
+            'inbound-rtp',
+            'outbound-rtp'
+          ];
 
           for (const stat of report.values()) {
-            if (stat.type === 'remote-inbound-rtp' && stat.kind === type) {
-              if (stat.timestamp > latestTimestamp) {
-                latestTimestamp = stat.timestamp;
-                instantaneousLatency = stat.roundTripTime;
-              }
+            if (types.includes(stat.type)) {
+              console.log(JSON.stringify(stat, null, 2));
             }
           }
-
-          return instantaneousLatency;
         }
 
         // 1秒ごとに瞬時遅延を出力
