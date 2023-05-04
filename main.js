@@ -5,12 +5,12 @@ let videoCodec = null;
 let audioCodec = null;
 let signalingKey = null;
 
-function onChangeVideoCodec() {
-  videoCodec = document.getElementById("video-codec").value;
-  if (videoCodec == 'none') {
-    videoCodec = null;
-  }
-}
+// function onChangeVideoCodec() {
+//   videoCodec = document.getElementById("video-codec").value;
+//   if (videoCodec == 'none') {
+//     videoCodec = null;
+//   }
+// }
 // query string から roomId, clientId を取得するヘルパー
 function parseQueryString() {
   const qs = window.Qs;

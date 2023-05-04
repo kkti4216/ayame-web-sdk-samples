@@ -18,7 +18,7 @@
         <p>Client ID
         <input id="clientIdInput" disabled type="text" value=""></input>
         </p>
-        <p> Codec
+        <!-- <p> Codec
         <select id="video-codec" onChange="onChangeVideoCodec();">
           <option value="H264">H264</option>
           <option value="none">none</option>
@@ -27,7 +27,7 @@
           <option value="AV1">AV1</option>
           <option value="H265">H265</option>
         </select>
-        </p>
+        </p> -->
         <button id="connect">Connect</button>
         <button id="disconnect" disabled>Disconnect</button>
         <button id="start-recording">Start Recording</button>
@@ -106,7 +106,7 @@
           connectButton.disabled = true
           disconnectButton.disabled = false
 
-          options.video.codec = videoCodec;
+          options.video.codec = "H264";
           conn = Ayame.connection(signalingUrl, roomId, options, true);
           mediaStream = await navigator.mediaDevices.getUserMedia({
             audio: true,
