@@ -39,6 +39,7 @@
         <button id="disconnect" disabled>Disconnect</button>
         <button id="start-recording">Start Recording</button>
         <button id="stop-recording" disabled>Stop Recording</button>
+        <p>Total stream duration: <span id="call-duration">0</span> seconds</p>
          <a id="download-link" href="#" download="remote-video.webm" style="display:none">Download Recorded Video</a>
       </div>
       <div style="float:left;">
@@ -95,14 +96,35 @@
         document.querySelector("#roomIdInput").value = roomId;
         document.querySelector("#clientIdInput").value = options.clientId;
 
+        // timer
+        let connectionStartTime;
+        let elapsedTimeInSeconds = 0;
+        let elapsedTimeInterval;
+        let nowStreaming = false;
+
+        document.getElementById('call-duration').textContent = elapsedTimeInSeconds.toFixed(1);
+
+        function updateElapsedTime() {
+          if (nowStreaming) {
+            const elapsedTimeInSeconds = (Date.now() - connectionStartTime) / 1000;
+            document.getElementById('call-duration').textContent = elapsedTimeInSeconds.toFixed(1);
+          }
+        }
+
         // connection
         const connectButton = document.querySelector("#connect");
         const disconnectButton = document.querySelector("#disconnect");
 
         disconnectButton.addEventListener("click", () => {
-          saveLogData();
+          console.log("poi")
+          saveMetricsData();
+          console.log("poi")
           handleDisconnect();
           handleRecordingOnDisconnect();
+
+          if (nowStreaming) {
+            clearInterval(elapsedTimeInterval);
+          }
         });
 
         function handleDisconnect() {
@@ -140,16 +162,32 @@
             },
           });
           const authnMetadata = {hoge: "fuga"};
-          conn.on('open', ({authzMetadata}) => console.log(authzMetadata));
+          conn.on("open", ({ authzMetadata }) => {
+            console.log(authzMetadata);
+          });
           conn.on('disconnect', (e) => {
             console.log(e);
-            saveLogData();
+            saveMetricsData();
             handleDisconnect();
             handleRecordingOnDisconnect();
+
+            if (nowStreaming) {
+              clearInterval(elapsedTimeInterval);
+              // console.log(elapsedTimeInterval)
+              // console.log("clear interval in conn.disconnect")
+            }
           });
           conn.on('addstream', async (e) => {
             console.log(e.stream);
             remoteVideo.srcObject = e.stream;
+
+            if (!nowStreaming) {
+              nowStreaming = true
+              connectionStartTime = Date.now();
+              elapsedTimeInterval = setInterval(updateElapsedTime, 1000);
+              // console.log("set interval")
+              // console.log(elapsedTimeInterval)
+            }
           });
           await conn.connect(mediaStream, { authnMetadata });
           localVideo.srcObject = mediaStream;
@@ -216,7 +254,7 @@
         }
 
         // metrics
-        let metricsData = new Blob([], { type: 'text/plain;charset=utf-8' });
+        let metricsData = []
 
         async function getInstantaneousLatency() {
           const currentTime = new Date().toISOString();
@@ -236,32 +274,33 @@
 
           for (const stat of report.values()) {
             if (types.includes(stat.type)) {
-              const statJson = JSON.stringify(stat, null, 2);
-              // console.log(statJson);
-              const entry = `${currentTime}\n${statJson}\n\n`;
-              metricsData = new Blob([metricsData, entry], { type: 'text/plain;charset=utf-8' });
+              const statJson = {
+                timestamp: currentTime,
+                stat: stat,
+              };
+              metricsData.push(statJson);
             }
           }
         }
 
         function saveMetricsData() {
+          const metricsJson = JSON.stringify(metricsData, null, 2);
+          const blob = new Blob([metricsJson], { type: 'application/json;charset=utf-8' });
+
           // 現在の日時を含めたファイル名を作成
           const currentDateTime = new Date().toISOString().replace(/[:.]/g, '-');
           const fileName = `metrics-${currentDateTime}.txt`;
 
           const link = document.createElement('a');
-          link.href = URL.createObjectURL(metricsData);
+          link.href = URL.createObjectURL(blob);
           link.download = fileName;
 
           link.click();
           URL.revokeObjectURL(link.href);
         }
 
-        document.getElementById('save-metrics-btn').addEventListener('click', saveMetricsData);
-
         // 1秒ごとに瞬時遅延を出力
         setInterval(getInstantaneousLatency, 1000);
-
       </script>
   </body>
 </html>
