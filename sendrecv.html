@@ -100,6 +100,7 @@
         const disconnectButton = document.querySelector("#disconnect");
 
         disconnectButton.addEventListener("click", () => {
+          saveLogData();
           handleDisconnect();
           handleRecordingOnDisconnect();
         });
@@ -142,6 +143,7 @@
           conn.on('open', ({authzMetadata}) => console.log(authzMetadata));
           conn.on('disconnect', (e) => {
             console.log(e);
+            saveLogData();
             handleDisconnect();
             handleRecordingOnDisconnect();
           });
@@ -214,26 +216,11 @@
         }
 
         // metrics
-        // async function getRtt() {
-        //   console.log(conn)
-        //   if (!conn || !conn.connectionState == "connected") {
-        //     console.error('Connection is not established.');
-        //     return;
-        //   }
-        //   const report = await conn._pc.getStats();
-        //   console.log(report)
-        //   const rtcStatsMoment = new RtcStats.RTCStatsMoment(conn.connection);
-
-        //   rtcStatsMoment.update(report)
-        //   console.log(rtcStatsMoment.report())
-        // }
-
-        // setInterval(getRtt, 1000);
+        let metricsData = new Blob([], { type: 'text/plain;charset=utf-8' });
 
         async function getInstantaneousLatency() {
           const currentTime = new Date().toISOString();
-          console.log(currentTime);
-          if (!conn || !conn.connectionState == "connected") {
+          if (!conn || conn.connectionState !== "connected") {
             console.error('Connection is not established.');
             return;
           }
@@ -249,10 +236,28 @@
 
           for (const stat of report.values()) {
             if (types.includes(stat.type)) {
-              console.log(JSON.stringify(stat, null, 2));
+              const statJson = JSON.stringify(stat, null, 2);
+              // console.log(statJson);
+              const entry = `${currentTime}\n${statJson}\n\n`;
+              metricsData = new Blob([metricsData, entry], { type: 'text/plain;charset=utf-8' });
             }
           }
         }
+
+        function saveMetricsData() {
+          // 現在の日時を含めたファイル名を作成
+          const currentDateTime = new Date().toISOString().replace(/[:.]/g, '-');
+          const fileName = `metrics-${currentDateTime}.txt`;
+
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(metricsData);
+          link.download = fileName;
+
+          link.click();
+          URL.revokeObjectURL(link.href);
+        }
+
+        document.getElementById('save-metrics-btn').addEventListener('click', saveMetricsData);
 
         // 1秒ごとに瞬時遅延を出力
         setInterval(getInstantaneousLatency, 1000);
