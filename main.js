@@ -51,6 +51,7 @@ signalingURLnput.addEventListener('change', (event) => {
 });
 
 const autoRecodingInput = document.getElementById("autoRecoding");
+autoRecodingInput.checked = autoRecoding
 autoRecodingInput.addEventListener('change', (event) => {
   console.log(event);
   autoRecoding = autoRecodingInput.checked;
