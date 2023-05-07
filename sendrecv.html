@@ -35,6 +35,12 @@
             </div>
           </div>
           <div class="row mb-3">
+            <label for="clientIdInput" class="col-sm-2 col-form-label">Client Info</label>
+            <div class="col-sm-10">
+              <input id="clientInfo" disabled type="text" class="form-control" value="">
+            </div>
+          </div>
+          <div class="row mb-3">
             <div class="col-sm-2"></div>
             <div class="col-sm-10">
               <div class="custom-control custom-switch">
@@ -134,6 +140,7 @@
         document.querySelector("#signalingURLnput").value = signalingUrl;
         document.querySelector("#roomIdInput").value = roomId;
         document.querySelector("#clientIdInput").value = options.clientId;
+        document.querySelector("#clientInfo").value = navigator.userAgent;
 
         // timer
         let connectionStartTime;
@@ -349,7 +356,7 @@
           }
 
           const report = await conn._pc.getStats();
-
+          console.log(navigator.userAgent);
           const types = [
             'remote-inbound-rtp',
             'remote-outbound-rtp',
