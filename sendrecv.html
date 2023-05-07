@@ -100,6 +100,11 @@
         import * as Ayame from '@open-ayame/ayame-web-sdk';
         import * as RtcStats from 'rtcstats-wrapper';
 
+        window.addEventListener('beforeunload', (event) => {
+            event.preventDefault();
+            event.returnValue = 'leave this page?';
+        });
+
         const options = Ayame.defaultOptions;
 
         options.iceServers = [
