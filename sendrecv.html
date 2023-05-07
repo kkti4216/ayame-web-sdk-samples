@@ -157,8 +157,8 @@
         }
 
         //auto recoding
-        const autoRecodingCheckBox = document.getElementById("autoRecoding");
-        autoRecodingCheckBox.checked = autoRecoding;
+        // const autoRecodingCheckBox = document.getElementById("autoRecoding");
+        // autoRecodingCheckBox.checked = autoRecoding;
 
         // connection
         const connectButton = document.querySelector("#connect");
@@ -167,7 +167,7 @@
         disconnectButton.addEventListener("click", () => {
           saveMetricsData();
           handleDisconnect();
-          handleRecordingOnDisconnect();
+          handleStopRecordingOnDisconnect();
         });
 
         function handleDisconnect() {
@@ -186,17 +186,23 @@
           nowStreaming = false
         }
 
-        function handleRecordingOnDisconnect() {
+        function handleStopRecordingOnDisconnect() {
           if (mediaRecorderRemote && mediaRecorderRemote.state === 'recording') {
             stopRemoteRecording();
             startRecordingButton.disabled = false;
             stopRecordingButton.disabled = true;
+            // if (autoRecoding) {
+            //   downloadLinkRemote.click();
+            // }
           }
           if (mediaRecorderLocal && mediaRecorderLocal.state === 'recording') {
             stopLocalRecording();
             startRecordingButton.disabled = false;
             stopRecordingButton.disabled = true;
           }
+          // if (autoRecoding) {
+          //     downloadLinkLocal.click();
+          //   }
         }
 
         connectButton.addEventListener("click", async () => {
@@ -220,7 +226,7 @@
             console.log(e);
             saveMetricsData();
             handleDisconnect();
-            handleRecordingOnDisconnect();
+            handleStopRecordingOnDisconnect();
           });
           conn.on('addstream', async (e) => {
             console.log(e.stream);
@@ -229,7 +235,7 @@
             nowStreaming = true
             connectionStartTime = Date.now();
 
-            if (autoRecodingCheckBox.checked) {
+            if (autoRecoding) {
               startRecordingButton.click();
             }
           });
@@ -270,6 +276,10 @@
           stopLocalRecording();
           startRecordingButton.disabled = false;
           stopRecordingButton.disabled = true;
+          // if (autoRecoding) {
+          //   downloadLinkRemote.click();
+          //   downloadLinkLocal.click();
+          // }
         });
 
         function startRemoteRecording() {
@@ -327,6 +337,10 @@
           downloadLinkRemote.download = `remote-video-${dateTime}.webm`;
           downloadLinkRemote.href = url;
           downloadLinkRemote.style.display = "block";
+
+          if (autoRecoding) {
+            downloadLinkRemote.click();
+          }
         }
 
         function handleLocalStop() {
@@ -336,6 +350,10 @@
           downloadLinkLocal.download = `local-video-${dateTime}.webm`;
           downloadLinkLocal.href = url;
           downloadLinkLocal.style.display = "block";
+
+          if (autoRecoding) {
+            downloadLinkLocal.click();
+          }
         }
 
         function stopRemoteRecording() {

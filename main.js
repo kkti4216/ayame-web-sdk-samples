@@ -49,3 +49,9 @@ signalingURLnput.addEventListener('change', (event) => {
   console.log(event);
   signalingUrl = event.target.value;
 });
+
+const autoRecodingInput = document.getElementById("autoRecoding");
+autoRecodingInput.addEventListener('change', (event) => {
+  console.log(event);
+  autoRecoding = autoRecodingInput.checked;
+});
