@@ -4,6 +4,7 @@ let clientId = null;
 let videoCodec = null;
 let audioCodec = null;
 let signalingKey = null;
+let autoRecoding = false;
 
 // function onChangeVideoCodec() {
 //   videoCodec = document.getElementById("video-codec").value;
@@ -27,6 +28,9 @@ function parseQueryString() {
     }
     if (params.signalingKey) {
       signalingKey = params.signalingKey;
+    }
+    if (params.autoRecoding == "1") {
+      autoRecoding = true
     }
   }
 }
