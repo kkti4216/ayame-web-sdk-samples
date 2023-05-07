@@ -40,7 +40,8 @@
         <button id="start-recording">Start Recording</button>
         <button id="stop-recording" disabled>Stop Recording</button>
         <p>Total stream duration: <span id="call-duration">0</span> seconds</p>
-         <a id="download-link" href="#" download="remote-video.webm" style="display:none">Download Recorded Video</a>
+         <a id="download-link-remote" href="#" download="remote-video.webm" style="display:none">Download Remote Video</a>
+         <a id="download-link-local" href="#" download="local-video.webm" style="display:none">Download Local Video</a>
       </div>
       <div style="float:left;">
         <video id="local-video" muted autoplay playsinline style="width: ${localVideoWidth}px; height: ${localVideoHeight}px; border: 1px solid black;"></video>
@@ -116,9 +117,7 @@
         const disconnectButton = document.querySelector("#disconnect");
 
         disconnectButton.addEventListener("click", () => {
-          console.log("poi")
           saveMetricsData();
-          console.log("poi")
           handleDisconnect();
           handleRecordingOnDisconnect();
 
@@ -141,8 +140,13 @@
         }
 
         function handleRecordingOnDisconnect() {
-          if (mediaRecorder && mediaRecorder.state === 'recording') {
-            stopRecording();
+          if (mediaRecorderRemote && mediaRecorderRemote.state === 'recording') {
+            stopRemoteRecording();
+            startRecordingButton.disabled = false;
+            stopRecordingButton.disabled = true;
+          }
+          if (mediaRecorderLocal && mediaRecorderLocal.state === 'recording') {
+            stopLocalRecording();
             startRecordingButton.disabled = false;
             stopRecordingButton.disabled = true;
           }
@@ -173,8 +177,6 @@
 
             if (nowStreaming) {
               clearInterval(elapsedTimeInterval);
-              // console.log(elapsedTimeInterval)
-              // console.log("clear interval in conn.disconnect")
             }
           });
           conn.on('addstream', async (e) => {
@@ -185,8 +187,6 @@
               nowStreaming = true
               connectionStartTime = Date.now();
               elapsedTimeInterval = setInterval(updateElapsedTime, 1000);
-              // console.log("set interval")
-              // console.log(elapsedTimeInterval)
             }
           });
           await conn.connect(mediaStream, { authnMetadata });
@@ -194,65 +194,113 @@
         });
 
         // recoding
-        let mediaRecorder;
-        let recordedBlobs;
         const startRecordingButton = document.querySelector("#start-recording");
         const stopRecordingButton = document.querySelector("#stop-recording");
-        const downloadLink = document.querySelector("#download-link");
+
+        let mediaRecorderRemote;
+        let recordedBlobsRemote;
+        const downloadLinkRemote = document.querySelector("#download-link-remote");
+
+        let mediaRecorderLocal;
+        let recordedBlobsLocal;
+        const downloadLinkLocal = document.querySelector("#download-link-local");
 
         startRecordingButton.addEventListener("click", () => {
           if (remoteVideo.srcObject) {
-            startRecording(remoteVideo.srcObject);
+            startRemoteRecording();
             startRecordingButton.disabled = true;
             stopRecordingButton.disabled = false;
-          } else {
+          }
+          if (localVideo.srcObject) {
+            startLocalRecording();
+            startRecordingButton.disabled = true;
+            stopRecordingButton.disabled = false;
+          }
+          if (!remoteVideo.srcObject && !localVideo.srcObject) {
             alert("fail to start recoding");
           }
         });
 
         stopRecordingButton.addEventListener("click", () => {
-          stopRecording();
+          stopRemoteRecording();
+          stopLocalRecording();
           startRecordingButton.disabled = false;
           stopRecordingButton.disabled = true;
         });
 
-        function startRecording() {
-          recordedBlobs = [];
+        function startRemoteRecording() {
+          recordedBlobsRemote = [];
           const mimeType = "video/webm;codecs=VP9,opus";
           const options = { mimeType };
 
           try {
-            mediaRecorder = new MediaRecorder(remoteVideo.srcObject, options);
+            mediaRecorderRemote = new MediaRecorder(remoteVideo.srcObject, options);
           } catch (e) {
             console.error("Error creating MediaRecorder:", e);
             return;
           }
 
-          mediaRecorder.ondataavailable = handleDataAvailable;
-          mediaRecorder.onstop = handleStop;
-          mediaRecorder.start();
-          console.log("MediaRecorder started:", mediaRecorder);
+          mediaRecorderRemote.ondataavailable = handleRemoteDataAvailable;
+          mediaRecorderRemote.onstop = handleRemoteStop;
+          mediaRecorderRemote.start();
+          console.log("MediaRecorder started:", mediaRecorderRemote);
         }
 
-        function handleDataAvailable(event) {
+        function startLocalRecording() {
+          recordedBlobsLocal = [];
+          const mimeType = "video/webm;codecs=VP9,opus";
+          const options = { mimeType };
+
+          try {
+            mediaRecorderLocal = new MediaRecorder(localVideo.srcObject, options);
+          } catch (e) {
+            console.error("Error creating MediaRecorder:", e);
+            return;
+          }
+
+          mediaRecorderLocal.ondataavailable = handleLocalDataAvailable;
+          mediaRecorderLocal.onstop = handleLocalStop;
+          mediaRecorderLocal.start();
+          console.log("MediaRecorder started:", mediaRecorderLocal);
+        }
+
+        function handleRemoteDataAvailable(event) {
           if (event.data && event.data.size > 0) {
-            recordedBlobs.push(event.data);
+            recordedBlobsRemote.push(event.data);
           }
         }
 
-        function stopRecording() {
-          mediaRecorder.stop();
+        function handleLocalDataAvailable(event) {
+          if (event.data && event.data.size > 0) {
+            recordedBlobsLocal.push(event.data);
+          }
         }
 
-        function handleStop() {
-          const blob = new Blob(recordedBlobs, { type: "video/webm" });
+        function handleRemoteStop() {
+          const blob = new Blob(recordedBlobsRemote, { type: "video/webm" });
           const url = window.URL.createObjectURL(blob);
           const dateTime = new Date().toISOString().replace(/[:.]/g, "-");
-          downloadLink.download = `remote-video-${dateTime}.webm`;
-          downloadLink.href = url;
-          downloadLink.style.display = "block";
+          downloadLinkRemote.download = `remote-video-${dateTime}.webm`;
+          downloadLinkRemote.href = url;
+          downloadLinkRemote.style.display = "block";
         }
 
+        function handleLocalStop() {
+          const blob = new Blob(recordedBlobsLocal, { type: "video/webm" });
+          const url = window.URL.createObjectURL(blob);
+          const dateTime = new Date().toISOString().replace(/[:.]/g, "-");
+          downloadLinkLocal.download = `local-video-${dateTime}.webm`;
+          downloadLinkLocal.href = url;
+          downloadLinkLocal.style.display = "block";
+        }
+
+        function stopRemoteRecording() {
+          mediaRecorderRemote.stop();
+        }
+
+        function stopLocalRecording() {
+          mediaRecorderLocal.stop();
+        }
         // metrics
         let metricsData = []
 
