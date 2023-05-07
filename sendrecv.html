@@ -138,7 +138,6 @@
         // timer
         let connectionStartTime;
         let elapsedTimeInSeconds = 0;
-        let elapsedTimeInterval;
         let nowStreaming = false;
 
         document.getElementById('call-duration').textContent = elapsedTimeInSeconds.toFixed(1);
@@ -162,10 +161,6 @@
           saveMetricsData();
           handleDisconnect();
           handleRecordingOnDisconnect();
-
-          if (nowStreaming) {
-            clearInterval(elapsedTimeInterval);
-          }
         });
 
         function handleDisconnect() {
@@ -177,8 +172,11 @@
           if (mediaStream) {
             mediaStream.getTracks().forEach((track) => track.stop());
           }
+
           connectButton.disabled = false
           disconnectButton.disabled = true
+
+          nowStreaming = false
         }
 
         function handleRecordingOnDisconnect() {
@@ -216,20 +214,14 @@
             saveMetricsData();
             handleDisconnect();
             handleRecordingOnDisconnect();
-
-            if (nowStreaming) {
-              clearInterval(elapsedTimeInterval);
-            }
           });
           conn.on('addstream', async (e) => {
             console.log(e.stream);
             remoteVideo.srcObject = e.stream;
 
-            if (!nowStreaming) {
-              nowStreaming = true
-              connectionStartTime = Date.now();
-              elapsedTimeInterval = setInterval(updateElapsedTime, 1000);
-            }
+            nowStreaming = true
+            connectionStartTime = Date.now();
+
             if (autoRecodingCheckBox.checked) {
               startRecordingButton.click();
             }
@@ -394,6 +386,7 @@
 
         // 1秒ごとに瞬時遅延を出力
         setInterval(getInstantaneousLatency, 1000);
+        setInterval(updateElapsedTime, 1000);
       </script>
   </body>
 </html>
