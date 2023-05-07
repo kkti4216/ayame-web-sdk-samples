@@ -156,10 +156,6 @@
           }
         }
 
-        //auto recoding
-        // const autoRecodingCheckBox = document.getElementById("autoRecoding");
-        // autoRecodingCheckBox.checked = autoRecoding;
-
         // connection
         const connectButton = document.querySelector("#connect");
         const disconnectButton = document.querySelector("#disconnect");
@@ -191,18 +187,12 @@
             stopRemoteRecording();
             startRecordingButton.disabled = false;
             stopRecordingButton.disabled = true;
-            // if (autoRecoding) {
-            //   downloadLinkRemote.click();
-            // }
           }
           if (mediaRecorderLocal && mediaRecorderLocal.state === 'recording') {
             stopLocalRecording();
             startRecordingButton.disabled = false;
             stopRecordingButton.disabled = true;
           }
-          // if (autoRecoding) {
-          //     downloadLinkLocal.click();
-          //   }
         }
 
         connectButton.addEventListener("click", async () => {
@@ -276,10 +266,6 @@
           stopLocalRecording();
           startRecordingButton.disabled = false;
           stopRecordingButton.disabled = true;
-          // if (autoRecoding) {
-          //   downloadLinkRemote.click();
-          //   downloadLinkLocal.click();
-          // }
         });
 
         function startRemoteRecording() {
@@ -334,7 +320,7 @@
           const blob = new Blob(recordedBlobsRemote, { type: "video/webm" });
           const url = window.URL.createObjectURL(blob);
           const dateTime = new Date().toISOString().replace(/[:.]/g, "-");
-          downloadLinkRemote.download = `remote-video-${dateTime}.webm`;
+          downloadLinkRemote.download = `${roomId}-remote-video-${dateTime}.webm`;
           downloadLinkRemote.href = url;
           downloadLinkRemote.style.display = "block";
 
@@ -347,7 +333,7 @@
           const blob = new Blob(recordedBlobsLocal, { type: "video/webm" });
           const url = window.URL.createObjectURL(blob);
           const dateTime = new Date().toISOString().replace(/[:.]/g, "-");
-          downloadLinkLocal.download = `local-video-${dateTime}.webm`;
+          downloadLinkLocal.download = `${roomId}-local-video-${dateTime}.webm`;
           downloadLinkLocal.href = url;
           downloadLinkLocal.style.display = "block";
 
@@ -398,7 +384,7 @@
 
           // 現在の日時を含めたファイル名を作成
           const currentDateTime = new Date().toISOString().replace(/[:.]/g, '-');
-          const fileName = `metrics-${currentDateTime}.txt`;
+          const fileName = `${roomId}-metrics-${currentDateTime}.txt`;
 
           const link = document.createElement('a');
           link.href = URL.createObjectURL(blob);
