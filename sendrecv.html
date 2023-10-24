@@ -28,7 +28,7 @@
               <input id="roomIdInput" type="text" class="form-control">
             </div>
           </div>
-          <div class="row mb-3">
+          <div class="row mb-3" style="display:none">
             <label for="clientIdInput" class="col-sm-2 col-form-label">Client ID</label>
             <div class="col-sm-10">
               <input id="clientIdInput" disabled type="text" class="form-control" value="">
@@ -38,6 +38,31 @@
             <label for="clientIdInput" class="col-sm-2 col-form-label">Client Info</label>
             <div class="col-sm-10">
               <input id="clientInfo" disabled type="text" class="form-control" value="">
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-sm-2"></div>
+            <div class="col-sm-10">
+              <div class="form-row">
+                <div class="col-6">
+                    <label for="remote-video-size">Downlink Size</label>
+                    <select id="remote-video-size" class="form-control">
+                        <option value="1080p">1080p</option>
+                        <option value="720p">720p</option>
+                        <option value="480p">480p</option>
+                        <option value="240p">240p</option>
+                    </select>
+                </div>
+                <div class="col-6">
+                    <label for="local-video-size">Uplink Size</label>
+                    <select id="local-video-size" class="form-control">
+                        <option value="1080p">1080p</option>
+                        <option value="720p">720p</option>
+                        <option value="480p">480p</option>
+                        <option value="240p">240p</option>
+                    </select>
+                </div>
+            </div>
             </div>
           </div>
           <div class="row mb-3">
@@ -85,13 +110,6 @@
             <option value="H265">H265</option>
           </select>
         </p> -->
-        <!-- <p> Size
-          <select id="video-size">
-            <option value="1080p-v">1080p-v</option>
-            <option value="1080p-h">1080p-h</option>
-            <option value="480p">480p</option>
-          </select>
-        </p> -->
 
       <!-- <script src="https://cdn.jsdelivr.net/npm/@open-ayame/ayame-web-sdk@2022.1.0/dist/ayame.js"></script> -->
       <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.7.0/qs.min.js"></script>
@@ -123,24 +141,43 @@
         // smartphoneでは勝手に縦横に対応してくれる
         let videoWidth = 1920;
         let videoHeight = 1080;
-        // const videoSizeSelect = document.getElementById('video-size');
-        // videoSizeSelect.addEventListener("change", () => {
-        //   if (videoSizeSelect.value == "1080p-h") {
-        //     videoWidth = 1920;
-        //     videoHeight = 1080;
-        //   } else if (videoSizeSelect.value == "1080p-v") {
-        //     videoWidth = 1080;
-        //     videoHeight = 1920;
-        //   } else {
-        //     videoWidth = 854;
-        //     videoHeight = 480;
-        //   }
-        // }
-        // )
-        const localVideoWidth = videoWidth;
-        const localVideoHeight = videoHeight ;
+        const remeoteVideoSizeSelect = document.getElementById('remote-video-size');
+        videoSizeSelect.addEventListener("change", () => {
+          if (remoteVideoSizeSelect.value == "1080p") {
+            remotevideoWidth = 1920;
+            remotevideoHeight = 1080;
+          } else if (remoteVideoSizeSelect.value == "720p") {
+            remotevideoWidth = 720;
+            remotevideoHeight = 1280;
+          } else if (remoteVideoSizeSelect.value == "480p") {
+            remotevideoWidth = 854;
+            remotevideoHeight = 480;
+          } else if (remoteVideoSizeSelect.value == "240p") {
+            remotevideoWidth = 426;
+            remotevideoHeight = 240;
+          }
+        });
         const remoteVideoWidth = videoWidth;
         const remoteVideoHeight = videoHeight ;
+
+        const localVideoSizeSelect = document.getElementById('local-video-size');
+        videoSizeSelect.addEventListener("change", () => {
+          if (localVideoSizeSelect.value == "1080p") {
+            localvideoWidth = 1920;
+            localvideoHeight = 1080;
+          } else if (localVideoSizeSelect.value == "720p") {
+            localvideoWidth = 720;
+            localvideoHeight = 1280;
+          } else if (localVideoSizeSelect.value == "480p") {
+            localvideoWidth = 854;
+            localvideoHeight = 480;
+          } else if (localVideoSizeSelect.value == "240p") {
+            localvideoWidth = 426;
+            localvideoHeight = 240;
+          }
+        });
+        const localVideoWidth = localVideoWidth;
+        const localVideoHeight = localVideoHeight ;
 
         document.querySelector("#signalingURLnput").value = signalingUrl;
         document.querySelector("#roomIdInput").value = roomId;
