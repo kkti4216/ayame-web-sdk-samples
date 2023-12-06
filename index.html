@@ -1,17 +1,413 @@
 <html lang="ja">
     <head>
         <meta charset="utf-8">
-        <title>Ayame Web SDK Sample</title>
-        <link rel="stylesheet" href="https://cdn.rawgit.com/Chalarangelo/mini.css/v3.0.1/dist/mini-default.min.css">
+        <meta name="robots" content="noindex">
+        <meta name="google-site-verification" content="KzbT_DyGko6ZBcG_b8UEb3EDj1UNTtUqIyoe8O97vtM" />
+        <title>WebRTC Measurement</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+        <!-- <link rel="stylesheet" href="https://cdn.rawgit.com/Chalarangelo/mini.css/v3.0.1/dist/mini-default.min.css"> -->
     </head>
     <body>
-        <h4>Ayame Web SDK Sample</h4>
-        <ul>
-            <li><a href="./sendrecv.html">双方向送受信(sendrecv)</a></li>
-            <li><a href="./sendonly.html">送信のみ(sendonly)</a></li>
-            <li><a href="./recvonly.html">受信のみ(recvonly)</a></li>
-            <li><a href="./displaymedia.html">getDisplayMedia()(画面共有)</a></li>
-            <li><a href="./datachannel.html">RTCDataChannel</a></li>
-        </ul>
+      <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+      <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+      <nav class="navbar navbar-light bg-light">
+        <div class="container-fluid">
+          <span class="navbar-brand mb-0 h1">WebRTC Send/Recv</span>
+        </div>
+      </nav>
+      <div class="container mt-3">
+        <form>
+          <div class="row mb-3">
+            <label for="signalingURLnput" class="col-sm-2 col-form-label">Signaling Server</label>
+            <div class="col-sm-10">
+              <input id="signalingURLnput" type="text" class="form-control" value="">
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="roomIdInput" class="col-sm-2 col-form-label">Room ID</label>
+            <div class="col-sm-10">
+              <input id="roomIdInput" type="text" class="form-control">
+            </div>
+          </div>
+          <div class="row mb-3" style="display:none">
+            <label for="clientIdInput" class="col-sm-2 col-form-label">Client ID</label>
+            <div class="col-sm-10">
+              <input id="clientIdInput" disabled type="text" class="form-control" value="">
+            </div>
+          </div>
+          <div class="row mb-3" style="display:none">
+            <label for="clientIdInput" class="col-sm-2 col-form-label">Client Info</label>
+            <div class="col-sm-10">
+              <input id="clientInfo" disabled type="text" class="form-control" value="">
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-sm-2">
+              <label for="video-size">Uplink Video Size</label>
+            </div>
+            <div class="col-sm-10">
+                    <select id="video-size" class="form-control">
+                        <option value="1080p">1080p</option>
+                        <option value="720p">720p</option>
+                        <option value="480p">480p</option>
+                        <option value="240p">240p</option>
+                    </select>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-sm-2"></div>
+            <div class="col-sm-10">
+              <div class="custom-control custom-switch">
+                <input type="checkbox" class="custom-control-input" id="autoRecoding">
+                <label class="custom-control-label" for="autoRecoding">Auto Recoding</label>
+              </div>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-sm-2"></div>
+            <div class="col-sm-10">
+              <button id="connect" class="btn btn-primary">Connect</button>
+              <button id="disconnect" class="btn btn-secondary" disabled>Disconnect</button>
+              <button id="start-recording" class="btn btn-success">Start Recording</button>
+              <button id="stop-recording" class="btn btn-danger" disabled>Stop Recording</button>
+            </div>
+          </div>
+        </form>
+        <p class="mt-3">Total stream duration: <span id="call-duration">0</span> seconds</p>
+        <a id="download-link-remote" href="#" download="remote-video.webm" style="display:none">Download Remote Video</a>
+        <a id="download-link-local" href="#" download="local-video.webm" style="display:none">Download Local Video</a>
+        <div class="row mt-3">
+          <div class="col-sm-12">
+            <video id="local-video" muted autoplay playsinline style="max-width: 100%; height: auto; border: 1px solid black;"></video>
+          </div>
+        </div>
+        <div class="row mt-3">
+          <div class="col-sm-12">
+            <video id="remote-video" autoplay playsinline style="max-width: 100%; height: auto; border: 1px solid black;"></video>
+          </div>
+        </div>
+        </div>
+      </div>
+
+          <!-- <p> Codec
+            <select id="video-codec" onChange="onChangeVideoCodec();">
+            <option value="H264">H264</option>
+            <option value="none">none</option>
+            <option value="VP8">VP8</option>
+            <option value="VP9">VP9</option>
+            <option value="AV1">AV1</option>
+            <option value="H265">H265</option>
+          </select>
+        </p> -->
+
+      <!-- <script src="https://cdn.jsdelivr.net/npm/@open-ayame/ayame-web-sdk@2022.1.0/dist/ayame.js"></script> -->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.7.0/qs.min.js"></script>
+      <script src="./main.js"></script>
+      <script type="module">
+        import * as Ayame from '@open-ayame/ayame-web-sdk';
+        import * as RtcStats from 'rtcstats-wrapper';
+
+        window.addEventListener('beforeunload', (event) => {
+            event.preventDefault();
+            event.returnValue = 'leave this page?';
+        });
+
+        const options = Ayame.defaultOptions;
+
+        options.iceServers = [
+        { "urls": "stun:stun.l.google.com:19302" }
+        ]
+
+        options.clientId = clientId ? clientId : options.clientId;
+        if (signalingKey) {
+          options.signalingKey = signalingKey;
+        }
+        const localVideo = document.querySelector('#local-video');
+        const remoteVideo = document.querySelector('#remote-video');
+        let conn;
+        let mediaStream;
+
+        // smartphoneでは勝手に縦横に対応してくれる
+        let videoWidth = 1920;
+        let videoHeight = 1080;
+        const videoSizeSelect = document.getElementById('video-size');
+        videoSizeSelect.addEventListener("change", () => {
+          if (videoSizeSelect.value == "1080p") {
+            videoWidth = 1920;
+            videoHeight = 1080;
+          } else if (videoSizeSelect.value == "720p") {
+            videoWidth = 1280;
+            videoHeight = 720;
+          } else if (videoSizeSelect.value == "480p") {
+            videoWidth = 854;
+            videoHeight = 480;
+          } else if (videoSizeSelect.value == "240p") {
+            videoWidth = 426;
+            videoHeight = 240;
+          }
+        });
+
+        document.querySelector("#signalingURLnput").value = signalingUrl;
+        document.querySelector("#roomIdInput").value = roomId;
+        document.querySelector("#clientIdInput").value = options.clientId;
+        document.querySelector("#clientInfo").value = navigator.userAgent;
+
+        // timer
+        let connectionStartTime;
+        let elapsedTimeInSeconds = 0;
+        let nowStreaming = false;
+
+        document.getElementById('call-duration').textContent = elapsedTimeInSeconds.toFixed(1);
+
+        function updateElapsedTime() {
+          if (nowStreaming) {
+            const elapsedTimeInSeconds = (Date.now() - connectionStartTime) / 1000;
+            document.getElementById('call-duration').textContent = elapsedTimeInSeconds.toFixed(1);
+          }
+        }
+
+        // connection
+        const connectButton = document.querySelector("#connect");
+        const disconnectButton = document.querySelector("#disconnect");
+
+        disconnectButton.addEventListener("click", () => {
+          saveMetricsData();
+          handleDisconnect();
+          handleStopRecordingOnDisconnect();
+        });
+
+        function handleDisconnect() {
+          if (conn) {
+            conn.disconnect();
+          }
+          localVideo.srcObject = null;
+          remoteVideo.srcObject = null;
+          if (mediaStream) {
+            mediaStream.getTracks().forEach((track) => track.stop());
+          }
+
+          connectButton.disabled = false
+          disconnectButton.disabled = true
+
+          nowStreaming = false
+        }
+
+        function handleStopRecordingOnDisconnect() {
+          if (mediaRecorderRemote && mediaRecorderRemote.state === 'recording') {
+            stopRemoteRecording();
+            startRecordingButton.disabled = false;
+            stopRecordingButton.disabled = true;
+          }
+          if (mediaRecorderLocal && mediaRecorderLocal.state === 'recording') {
+            stopLocalRecording();
+            startRecordingButton.disabled = false;
+            stopRecordingButton.disabled = true;
+          }
+        }
+
+        connectButton.addEventListener("click", async () => {
+          connectButton.disabled = true
+          disconnectButton.disabled = false
+
+          options.video.codec = "VP9";
+          conn = Ayame.connection(signalingUrl, roomId, options, true);
+          mediaStream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+            video: {
+              width: videoWidth,
+              height: videoHeight,
+            },
+          });
+          const authnMetadata = {hoge: "fuga"};
+          conn.on("open", ({ authzMetadata }) => {
+            console.log(authzMetadata);
+          });
+          conn.on('disconnect', (e) => {
+            console.log(e);
+            saveMetricsData();
+            handleDisconnect();
+            handleStopRecordingOnDisconnect();
+          });
+          conn.on('addstream', async (e) => {
+            console.log(e.stream);
+            remoteVideo.srcObject = e.stream;
+
+            nowStreaming = true
+            connectionStartTime = Date.now();
+
+            if (autoRecoding) {
+              startRecordingButton.click();
+            }
+          });
+          await conn.connect(mediaStream, { authnMetadata });
+          localVideo.srcObject = mediaStream;
+        });
+
+        // recoding
+        const startRecordingButton = document.querySelector("#start-recording");
+        const stopRecordingButton = document.querySelector("#stop-recording");
+
+        let mediaRecorderRemote;
+        let recordedBlobsRemote;
+        const downloadLinkRemote = document.querySelector("#download-link-remote");
+
+        let mediaRecorderLocal;
+        let recordedBlobsLocal;
+        const downloadLinkLocal = document.querySelector("#download-link-local");
+
+        startRecordingButton.addEventListener("click", () => {
+          if (remoteVideo.srcObject) {
+            startRemoteRecording();
+            startRecordingButton.disabled = true;
+            stopRecordingButton.disabled = false;
+          }
+          if (localVideo.srcObject) {
+            startLocalRecording();
+            startRecordingButton.disabled = true;
+            stopRecordingButton.disabled = false;
+          }
+          if (!remoteVideo.srcObject && !localVideo.srcObject) {
+            alert("fail to start recoding");
+          }
+        });
+
+        stopRecordingButton.addEventListener("click", () => {
+          stopRemoteRecording();
+          stopLocalRecording();
+          startRecordingButton.disabled = false;
+          stopRecordingButton.disabled = true;
+        });
+
+        function startRemoteRecording() {
+          recordedBlobsRemote = [];
+          const mimeType = "video/webm;codecs=VP9,opus";
+          const options = { mimeType };
+
+          try {
+            mediaRecorderRemote = new MediaRecorder(remoteVideo.srcObject, options);
+          } catch (e) {
+            console.error("Error creating MediaRecorder:", e);
+            return;
+          }
+
+          mediaRecorderRemote.ondataavailable = handleRemoteDataAvailable;
+          mediaRecorderRemote.onstop = handleRemoteStop;
+          mediaRecorderRemote.start();
+          console.log("MediaRecorder started:", mediaRecorderRemote);
+        }
+
+        function startLocalRecording() {
+          recordedBlobsLocal = [];
+          const mimeType = "video/webm;codecs=VP9,opus";
+          const options = { mimeType };
+
+          try {
+            mediaRecorderLocal = new MediaRecorder(localVideo.srcObject, options);
+          } catch (e) {
+            console.error("Error creating MediaRecorder:", e);
+            return;
+          }
+
+          mediaRecorderLocal.ondataavailable = handleLocalDataAvailable;
+          mediaRecorderLocal.onstop = handleLocalStop;
+          mediaRecorderLocal.start();
+          console.log("MediaRecorder started:", mediaRecorderLocal);
+        }
+
+        function handleRemoteDataAvailable(event) {
+          if (event.data && event.data.size > 0) {
+            recordedBlobsRemote.push(event.data);
+          }
+        }
+
+        function handleLocalDataAvailable(event) {
+          if (event.data && event.data.size > 0) {
+            recordedBlobsLocal.push(event.data);
+          }
+        }
+
+        function handleRemoteStop() {
+          const blob = new Blob(recordedBlobsRemote, { type: "video/webm" });
+          const url = window.URL.createObjectURL(blob);
+          const dateTime = new Date().toISOString().replace(/[:.]/g, "-");
+          downloadLinkRemote.download = `${roomId}-remote-video-${dateTime}.webm`;
+          downloadLinkRemote.href = url;
+          downloadLinkRemote.style.display = "block";
+
+          if (autoRecoding) {
+            downloadLinkRemote.click();
+          }
+        }
+
+        function handleLocalStop() {
+          const blob = new Blob(recordedBlobsLocal, { type: "video/webm" });
+          const url = window.URL.createObjectURL(blob);
+          const dateTime = new Date().toISOString().replace(/[:.]/g, "-");
+          downloadLinkLocal.download = `${roomId}-local-video-${dateTime}.webm`;
+          downloadLinkLocal.href = url;
+          downloadLinkLocal.style.display = "block";
+
+          if (autoRecoding) {
+            downloadLinkLocal.click();
+          }
+        }
+
+        function stopRemoteRecording() {
+          mediaRecorderRemote.stop();
+        }
+
+        function stopLocalRecording() {
+          mediaRecorderLocal.stop();
+        }
+        // metrics
+        let metricsData = []
+
+        async function getInstantaneousLatency() {
+          const currentTime = new Date().toISOString();
+          if (!conn || conn.connectionState !== "connected") {
+            console.error('Connection is not established.');
+            return;
+          }
+
+          const report = await conn._pc.getStats();
+          const types = [
+            'remote-inbound-rtp',
+            'remote-outbound-rtp',
+            'inbound-rtp',
+            'outbound-rtp'
+          ];
+
+          for (const stat of report.values()) {
+            if (types.includes(stat.type)) {
+              const statJson = {
+                timestamp: currentTime,
+                stat: stat,
+              };
+              metricsData.push(statJson);
+            }
+          }
+        }
+
+        function saveMetricsData() {
+          const metricsJson = JSON.stringify(metricsData, null, 2);
+          const blob = new Blob([metricsJson], { type: 'application/json;charset=utf-8' });
+
+          // 現在の日時を含めたファイル名を作成
+          const currentDateTime = new Date().toISOString().replace(/[:.]/g, '-');
+          const fileName = `${roomId}-metrics-${currentDateTime}.txt`;
+
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          link.download = fileName;
+
+          link.click();
+          URL.revokeObjectURL(link.href);
+        }
+
+        // 1秒ごとに瞬時遅延を出力
+        setInterval(getInstantaneousLatency, 1000);
+        setInterval(updateElapsedTime, 1000);
+      </script>
   </body>
 </html>
