@@ -56,6 +56,17 @@
             </div>
           </div>
           <div class="row mb-3">
+            <div class="col-sm-2">
+              <label for="video-fps">Uplink Video Framerate</label>
+            </div>
+            <div class="col-sm-10">
+                    <select id="video-fps" class="form-control">
+                        <option value="1080p">30fps</option>
+                        <option value="720p">15fpsp</option>
+                    </select>
+            </div>
+          </div>
+          <div class="row mb-3">
             <div class="col-sm-2"></div>
             <div class="col-sm-10">
               <div class="custom-control custom-switch">
@@ -148,6 +159,16 @@
           }
         });
 
+        let videoFps = 30;
+        const videoFpsSelect = document.getElementById('video-fps');
+        videoFpsSelect.addEventListener("change", () => {
+          if (videoFpsSelect.value == "30fps") {
+            videoFps = 30;
+          } else if (videoFpsSelect.value == "15fps") {
+            videoFps = 15;
+          }
+        });
+
         document.querySelector("#signalingURLnput").value = signalingUrl;
         document.querySelector("#roomIdInput").value = roomId;
         document.querySelector("#clientIdInput").value = options.clientId;
@@ -217,6 +238,7 @@
             video: {
               width: videoWidth,
               height: videoHeight,
+              frameRate: videoFps,
             },
           });
           const authnMetadata = {hoge: "fuga"};
