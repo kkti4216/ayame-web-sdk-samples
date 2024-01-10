@@ -1,5 +1,5 @@
 let signalingUrl = 'wss://signaling.itokoki.hongo.wide.ad.jp';
-let roomId = 'ayame-web-sdk-sample';
+let roomId = 'tomato';
 let clientId = null;
 let videoCodec = null;
 let audioCodec = null;
